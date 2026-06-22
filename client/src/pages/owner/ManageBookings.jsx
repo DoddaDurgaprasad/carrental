@@ -59,7 +59,12 @@ const ManageBookings = () => {
                 </td>
                 <td className='p-3'>{currency}{booking.price}</td>
                 <td className='p-3 max-md:hidden'>
-                  <span className='bg-gray-100 px-3 py-1 rounded-full text-xs'>offline</span>
+                   <span className={`px-3 py-1 rounded-full text-xs font-semibold 
+                        ${booking.paymentStatus === 'paid'  ? 'bg-green-100 text-green-600' 
+                         : 'bg-yellow-100 text-yellow-600'
+                          }`}>
+                         {booking.paymentStatus}
+                   </span>
                 </td>
                 <td className='p-3'>
                   {booking.status === 'pending' ? (

@@ -14,24 +14,101 @@ const CarDetails = () => {
   const [car, setCar] = useState(null)
   const currency = import.meta.env.VITE_CURRENCY
 
-  const handleSubmit = async(e)=>{
-    e.preventDefault()
-    try {
-      const {data} = await axios.post('/api/booking/create',{
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+
+    // Create Razorpay Order
+    const { data } = await axios.post(
+      "/api/booking/create-order",
+      {
         car: id,
         pickupDate,
         returnDate
-      })
-      if(data.success){
-        toast.success(data.message)
-        navigate('/my-bookings')
-      }else{
-        toast.error(data.message)
       }
-    } catch (error) {
-      toast.error(error.message)
+    );
+    console.log("CREATE ORDER RESPONSE:", data);
+    if (!data.success) {
+      return toast.error(data.message);
     }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+
+      amount: data.order.amount,
+
+      currency: data.order.currency,
+
+      name: "Car Rental",
+
+      description: `${car.brand} ${car.model}`,
+
+      order_id: data.order.id,
+
+      handler: async function (response) {
+
+        try {
+
+          const verifyRes = await axios.post(
+            "/api/booking/verify-payment",
+            {
+              razorpay_order_id:
+                response.razorpay_order_id,
+
+              razorpay_payment_id:
+                response.razorpay_payment_id,
+
+              razorpay_signature:
+                response.razorpay_signature,
+
+              car: id,
+              pickupDate,
+              returnDate
+            }
+          );
+
+          if (verifyRes.data.success) {
+
+            toast.success(
+              "Booking Confirmed Successfully"
+            );
+
+            navigate("/my-bookings");
+
+          } else {
+
+            toast.error(
+              verifyRes.data.message
+            );
+          }
+
+        } catch (error) {
+
+          toast.error(error.message);
+        }
+      },
+
+      prefill: {
+        name: "",
+        email: ""
+      },
+
+      theme: {
+        color: "#2563eb"
+      }
+    };
+
+    const razorpay =
+      new window.Razorpay(options);
+
+    razorpay.open();
+
+  } catch (error) {
+
+    toast.error(error.message);
   }
+};
 
   useEffect(() => {
     setCar(cars.find(car => car._id === id))

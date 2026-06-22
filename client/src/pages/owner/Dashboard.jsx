@@ -13,7 +13,7 @@ const Dashboard = () => {
     pendingBookings: 0,
     completedBookings: 0,
     recentBookings: [],
-    monthlyRevenue: 0,
+    totalRevenue: 0,
   })
 
   const dashboardCards = [
@@ -83,13 +83,25 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-          {/* Monthly revenue */}
-          <div className='p-4 md:p-6 mb-6 border border-bordercolor rounded-md w-full md:max-w-xs'>
-            <h1 className='text-lg font-medium'>Monthly Revenue</h1>
-            <p className='text-gray-500'>Revenue for current Month</p>
-            <p className='text-3xl mt-6 font-semibold text-primary'>{currency}{data.monthlyRevenue}</p>
-          </div>
-      </div>  
+          {/* total revenue */}
+          <div className="bg-white p-5 rounded-lg shadow">
+  <p className="text-gray-500">
+    Total Revenue
+  </p>
+
+  <h2 className="text-2xl font-bold">
+    ₹{data.totalRevenue}
+  </h2>
+
+  <p className="text-gray-500 mt-3">
+    Owner Earnings
+  </p>
+
+  <h2 className="text-2xl font-bold text-green-600">
+    ₹{data.earnings}
+  </h2>
+</div>
+          </div>  
     </div>
   )
 }
