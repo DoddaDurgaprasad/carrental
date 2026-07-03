@@ -102,7 +102,7 @@ export const verifyPayment = async (req, res) => {
   }
 );
 
-console.log(" Email job added:", booking._id);
+console.log(" EMAIL job added:", booking._id);
     const owner = await User.findById(carData.owner);
 
     if (owner) {
