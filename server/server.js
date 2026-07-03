@@ -1,14 +1,18 @@
-import dns from 'node:dns'; 
-dns.setServers(['1.1.1.1', '1.0.0.1']); // Forces public DNS resolution
+import dns from "node:dns";
 
+if (!process.env.DOCKER) {
+  dns.setServers(["1.1.1.1", "1.0.0.1"]);
+}
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 import express from "express";
 import cors from "cors";
 import connectDB from "./configs/db.js";
+import connection from "./configs/redis.js";
 import userRouter from "./routes/userRoutes.js";
 import ownerRouter from "./routes/ownerRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import "./workers/emailWorker.js";
 
 //Initialize express app //0taVFw5DG6r5ADLI this was mongodb atlas
 const app = express()

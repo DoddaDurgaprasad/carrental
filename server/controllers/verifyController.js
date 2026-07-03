@@ -3,6 +3,7 @@ import Booking from "../models/Booking.js";
 import Car from "../models/Car.js";
 import User from "../models/User.js";
 import { checkAvailability } from "../utils/checkAvailability.js";
+import emailQueue from "../queues/emailQueue.js";
 
 export const verifyPayment = async (req, res) => {
   try {
@@ -87,7 +88,21 @@ export const verifyPayment = async (req, res) => {
       orderId: razorpay_order_id,
       status: "confirmed",
     });
+  
+    //add email job to queue
+    await emailQueue.add(
+  "booking-confirmation",
+  {
+    bookingId: booking._id,
+  },
+  {
+    attempts: 3,
+    removeOnComplete: true,
+    removeOnFail: false,
+  }
+);
 
+console.log(" Email job added:", booking._id);
     const owner = await User.findById(carData.owner);
 
     if (owner) {

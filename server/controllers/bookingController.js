@@ -2,6 +2,7 @@ import Booking from "../models/Booking.js"
 import Car from "../models/Car.js"
 import Razorpay from "../configs/razorpay.js";
 import { checkAvailability } from "../utils/checkAvailability.js";
+import emailQueue from "../queues/emailQueue.js"
  
 
 // api to check availability of cars for the given date and location
@@ -28,32 +29,6 @@ export const checkAvailabilityOfCar = async (req,res)=>{
     }
 }
 
-// api to create booking 
-export const createBooking = async (req,res)=>{
-    try {
-        const {_id} = req.user;
-        const {car, pickupDate, returnDate} = req.body;
-
-        const isAvailable = await checkAvailability(car,pickupDate,returnDate)
-        if(!isAvailable){
-            return res.json({success: false, message: "Car not Available"})
-        }
-
-        const carData = await Car.findById(car)
-
-        //calculate the price based on pickup and return date
-        const picked= new Date(pickupDate);
-        const returned = new Date(returnDate);
-        const noOfDays = Math.ceil((returned-picked)/(1000*60*60*24));
-        const price = carData.pricePerDay * noOfDays;
-
-        await Booking.create({car, owner: carData.owner, user:_id, pickupDate, returnDate, price})
-        res.json({success: true, message: "Booking Created"})
-    } catch (error) {
-        console.log(error.message);
-        res.json({success: false, message: error.message})
-    }
-}
 
 // api to list user bookings
 export const getUserBookings = async (req,res)=>{
@@ -101,3 +76,78 @@ export const changeBookingStatus = async (req,res)=>{
         res.json({success: false, message: error.message})
     }
 }
+
+// create booking api
+export const createBooking = async (req,res)=>{
+    try {
+        const {_id} = req.user;
+        const {car, pickupDate, returnDate} = req.body;
+
+        const isAvailable = await checkAvailability(car,pickupDate,returnDate);
+
+        if(!isAvailable){
+            return res.json({
+                success:false,
+                message:"Car not Available"
+            });
+        }
+
+        const carData = await Car.findById(car);
+
+        const picked = new Date(pickupDate);
+        const returned = new Date(returnDate);
+
+        const noOfDays = Math.ceil(
+            (returned-picked)/(1000*60*60*24)
+        );
+
+        const price = carData.pricePerDay * noOfDays;
+
+        const booking = await Booking.create({
+            car,
+            owner: carData.owner,
+            user:_id,
+            pickupDate,
+            returnDate,
+            price
+        });
+
+        // Queue email
+        try {
+            console.log("Before adding email job");
+
+            const job = await emailQueue.add(
+                    "booking-confirmation",
+                   {
+        bookingId: booking._id,
+                   },
+                {
+                    attempts: 3,
+                       backoff: {
+                     type: "exponential",
+                       delay: 5000,
+                    },
+                 removeOnComplete: 100,
+                     removeOnFail: 50,
+                   }
+                  );
+
+          console.log("Email job added:", job.id);
+        } catch (err) {
+            console.error("Email queue error:", err);
+        }
+
+        res.json({
+            success: true,
+            message: "Booking Created"
+        });
+
+    } catch (error) {
+        console.log(error.message);
+
+        res.json({
+            success: false,
+            message: error.message
+        });
+    }
+};

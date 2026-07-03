@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: ./server
+    container_name: backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./server/.env
+    environment:
+      - DOCKER=true
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build: ./client
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped

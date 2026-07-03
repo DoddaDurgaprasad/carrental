@@ -20,15 +20,9 @@ const bookingSchema = new mongoose.Schema({
   enum: ["pending", "paid", "failed", "refunded"],
   default: "pending",
 },
-paymentId:{
-    type:String,
-    default:""
-},
+paymentId: String,
 
-orderId:{
-    type:String,
-    default:""
-}
+orderId: String,
 },{timestamps: true})
 
 const Booking = mongoose.model('Booking',bookingSchema)
