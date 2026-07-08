@@ -25,7 +25,7 @@ const worker=new Worker(
 
             // Customer Email
             await transporter.sendMail({
-                from: `"Car Rental System" <${process.env.SENDER_EMAIL}>`,
+                from: process.env.SENDER_EMAIL,
                 to: booking.user.email,
                 subject: "Your Booking is Confirmed 🚗",
                 html: userBookingTemplate({
@@ -40,7 +40,7 @@ const worker=new Worker(
 
             // Owner Email
             await transporter.sendMail({
-                from: `"Car Rental System" <${process.env.SENDER_EMAIL}>`,
+                from: process.env.SENDER_EMAIL,
                 to: booking.owner.email,
                 subject: "New Booking Received 🎉",
                 html: ownerBookingTemplate({
